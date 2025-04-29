@@ -30,16 +30,16 @@ import (
 // askCmd represents the ask command
 var askCmd = &cobra.Command{
 	Use:   "ask",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Ask for a shell command",
+	Long: `Describe your intent in natural language and talksh
+will suggest the corresponding shell command. For example:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ask called")
-	},
+talksh ask "find all .txt files modified today"`,
+	Run: askRun,
+}
+
+func askRun(cmd *cobra.Command, args []string) {
+	fmt.Println("ask called")
 }
 
 func init() {
