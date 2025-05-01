@@ -85,6 +85,17 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
+	// Set the default api target to the local ollama instance
+	viper.SetDefault("api.base_url", "http://localhost:11434/v1")
+	viper.SetDefault("api.model", "gemma3:12b-it-qat")
+	viper.SetDefault("api.timeout", "30")
+
+	// Set the default assistant system message
+	viper.SetDefault("assistant.shell", "zsh")
+	viper.SetDefault("assistant.system_msg_tmpl",
+		"When you are asked to do something, first think step by step and then "+
+			"answer with a %s one-liner in the code block.")
+
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
