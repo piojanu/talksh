@@ -23,7 +23,9 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/piojanu/talksh/asst"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +41,17 @@ talksh ask "find all .txt files modified today"`,
 }
 
 func askRun(cmd *cobra.Command, args []string) {
-	fmt.Println("ask called")
+	prompt := strings.Join(args, " ")
+	if prompt == "" {
+		cmd.Help()
+		return
+	}
+	command, err := asst.SuggestCommand(prompt)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(">", command)
 }
 
 func init() {
