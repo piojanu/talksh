@@ -108,6 +108,11 @@ func sendRequest(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(
+			"failed to call API: status code %d: %q", resp.StatusCode, body,
+		)
+	}
 	return body, nil
 }
 
