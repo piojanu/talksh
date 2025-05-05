@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/piojanu/talksh/asst"
@@ -48,7 +49,7 @@ func askRun(cmd *cobra.Command, args []string) {
 	}
 	command, err := asst.SuggestCommand(prompt)
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Fatalln("Error:", err)
 		return
 	}
 	fmt.Println(">", command)

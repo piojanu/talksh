@@ -65,6 +65,7 @@ func SuggestCommand(prompt string) (string, error) {
 
 func buildRequest(prompt string) (*http.Request, error) {
 	requestURL := fmt.Sprintf("%s/chat/completions", viper.GetString("api.base_url"))
+	apiKey := viper.GetString("api.key")
 	modelName := viper.GetString("api.model")
 	messages := []Message{
 		{
@@ -89,6 +90,9 @@ func buildRequest(prompt string) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(b))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	if apiKey != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 	}
 	req.Header.Set("Content-Type", "application/json")
 	return req, nil

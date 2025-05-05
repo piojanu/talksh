@@ -16,6 +16,7 @@ import (
 func init() {
 	// ensure defaults for tests
 	viper.SetDefault("api.base_url", "http://example.com")
+	viper.SetDefault("api.key", "test-key")
 	viper.SetDefault("api.model", "test-model")
 	viper.SetDefault("assistant.system_msg_tmpl", "sysmsg: %s")
 	viper.SetDefault("assistant.shell", "testshell")
@@ -38,7 +39,10 @@ func TestBuildRequest(t *testing.T) {
 	}
 	// check header
 	if req.Header.Get("Content-Type") != "application/json" {
-		t.Errorf("expected Content-Type application/json, got %s", req.Header.Get("Content-Type"))
+		t.Errorf("expected Content-Type: application/json, got %s", req.Header.Get("Content-Type"))
+	}
+	if req.Header.Get("Authorization") != "Bearer test-key" {
+		t.Errorf("expected Authorization: Bearer test-key, got %s", req.Header.Get("Authorization"))
 	}
 	// check body
 	b, err := io.ReadAll(req.Body)
