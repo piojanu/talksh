@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,8 +74,13 @@ func TestSendRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sendRequest error: %v", err)
 	}
-	if string(body) != "response body" {
-		t.Errorf("expected 'response body', got %q", body)
+	defer body.Close()
+	b, err := io.ReadAll(body)
+	if err != nil {
+		t.Fatalf("reading response body: %v", err)
+	}
+	if string(b) != "response body" {
+		t.Errorf("expected 'response body', got %q", b)
 	}
 }
 
@@ -97,14 +103,17 @@ func TestSendRequest_Timeout(t *testing.T) {
 	}
 }
 
-func TestParseAssistantResponse(t *testing.T) {
-	jsonStr := `{"choices":[{"message":{"content":"hi"}}]}`
-	content, err := parseAssistantResponse([]byte(jsonStr))
+func TestReadAllAssistantResponseDeltas(t *testing.T) {
+	input := "data: {\"choices\":[{\"delta\":{\"content\":\"h\"}}]}\n\n" +
+		"data: {\"choices\":[{\"delta\":{\"content\":\"i\\n\"}}]}\n\n" +
+		"data: [DONE]\n\n"
+	r := strings.NewReader(input)
+	content, err := readAllAssistantResponseDeltas(r)
 	if err != nil {
-		t.Fatalf("parseAssistantResponse error: %v", err)
+		t.Fatalf("readAllAssistantResponseDeltas error: %v", err)
 	}
-	if content != "hi" {
-		t.Errorf("expected content hi, got %s", content)
+	if content != "hi\n" {
+		t.Errorf(`expected 'hi\n', got %q`, content)
 	}
 }
 

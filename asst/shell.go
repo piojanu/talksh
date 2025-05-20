@@ -23,6 +23,7 @@ THE SOFTWARE.
 package asst
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -43,6 +44,7 @@ type Message struct {
 type ChatCompletionRequest struct {
 	Model    string    `json:"model"`
 	Messages []Message `json:"messages"`
+	Stream   bool      `json:"stream"`
 }
 
 var ErrNoCodeBlock = errors.New("no code-block found")
@@ -56,7 +58,8 @@ func SuggestCommand(prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	assistantResponse, err := parseAssistantResponse(body)
+	defer body.Close()
+	assistantResponse, err := readAllAssistantResponseDeltas(body)
 	if err != nil {
 		return "", err
 	}
@@ -83,6 +86,7 @@ func buildRequest(prompt string) (*http.Request, error) {
 	b, err := json.Marshal(ChatCompletionRequest{
 		Model:    modelName,
 		Messages: messages,
+		Stream:   true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal messages: %w", err)
@@ -98,7 +102,7 @@ func buildRequest(prompt string) (*http.Request, error) {
 	return req, nil
 }
 
-func sendRequest(req *http.Request) ([]byte, error) {
+func sendRequest(req *http.Request) (io.ReadCloser, error) {
 	// allow fractional timeouts (mostly for tests)
 	timeout := time.Duration(
 		viper.GetFloat64("api.timeout") * float64(time.Second))
@@ -107,31 +111,47 @@ func sendRequest(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
 	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response body: %w", err)
+		}
 		return nil, fmt.Errorf(
 			"failed to call API: status code %d: %q", resp.StatusCode, body,
 		)
 	}
-	return body, nil
+	return resp.Body, nil
 }
 
-func parseAssistantResponse(body []byte) (string, error) {
-	var partial struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
+func readAllAssistantResponseDeltas(body io.Reader) (string, error) {
+	var rollingResponse = &Rolling{}
+	var scanner = bufio.NewScanner(body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "data: ") {
+			data := strings.TrimPrefix(line, "data: ")
+			if data == "[DONE]" {
+				fmt.Print(eraseLine)
+				break
+			}
+			var partial struct {
+				Choices []struct {
+					Delta struct {
+						Content string `json:"content"`
+					} `json:"delta"`
+				} `json:"choices"`
+			}
+			if err := json.Unmarshal([]byte(data), &partial); err != nil {
+				return "", fmt.Errorf("failed to unmarshal response: %w", err)
+			}
+			rollingResponse.Append(partial.Choices[0].Delta.Content)
+			fmt.Print(rollingResponse)
+		}
 	}
-	if err := json.Unmarshal(body, &partial); err != nil {
-		return "", fmt.Errorf("failed to unmarshal response: %w", err)
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
-	return partial.Choices[0].Message.Content, nil
+	return string(rollingResponse.Buf), nil
 }
 
 func extractCodeBlock(assistantResponse string) (string, error) {
