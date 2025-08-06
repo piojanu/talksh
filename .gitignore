@@ -15,7 +15,8 @@
 !README.md
 !LICENSE
 
-# !Makefile
+!Dockerfile
+!Makefile
 
 # ...even if they are in subdirectories
 !*/
