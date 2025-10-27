@@ -10,17 +10,14 @@ It's designed to be a simple, powerful building block in your shell, letting you
 
 There are two main ways to install `talksh`.
 
-### Option 1: Pre-compiled Binaries (Recommended)
+### Option 1: GitHub Actions Artifacts (Recommended)
 
-You can download a pre-compiled binary from the project's [GitHub Releases](https://github.com/piojanu/talksh/releases) page.
+Every push builds fresh binaries. Grab the latest run:
 
-1.  Go to the **Releases** page.
-2.  Download the `.tar.gz` file for your operating system (e.g., `talksh_linux_amd64.tar.gz`).
-3.  Extract the binary:
-    ```bash
-    tar -xvf talksh_linux_amd64.tar.gz
-    ```
-4.  Move the `talksh` binary to a directory in your `$PATH`.
+1. Visit https://github.com/piojanu/talksh/actions
+2. Click the most recent ✅ run on `main` (or the tag you care about)
+3. Download the `talksh-<os>-<arch>` artifact you need
+4. Rename and move the `talksh` binary to a directory in your `$PATH`.
 
 **For non-root users (Recommended):**
 
@@ -31,7 +28,7 @@ A common user-specific location is `$HOME/.local/bin`.
 mkdir -p $HOME/.local/bin
 
 # Move the binary
-mv talksh $HOME/.local/bin/
+mv talksh-<os>-<arch> $HOME/.local/bin/talksh
 ```
 
 *(Note: Make sure `$HOME/.local/bin` is in your `$PATH` by adding `export PATH="$HOME/.local/bin:$PATH"` to your `~/.bashrc` or `~/.zshrc` if it isn't already.)*
@@ -41,7 +38,7 @@ mv talksh $HOME/.local/bin/
 You can make `talksh` available to all users by placing it in `/usr/local/bin`.
 
 ```bash
-sudo mv talksh /usr/local/bin/
+sudo mv talksh-<os>-<arch> /usr/local/bin/talksh
 ```
 
 ### Option 2: With `go install` (For Go Users)
@@ -49,7 +46,7 @@ sudo mv talksh /usr/local/bin/
 If you have the [Go toolchain](https://go.dev/doc/install) installed, you can install `talksh` with a single command:
 
 ```bash
-go install github.com/your-username/talksh@latest
+go install github.com/piojanu/talksh@latest
 ```
 
 This will compile and place the `talksh` binary in your `$GOPATH/bin` directory. Make sure this directory is in your system's `$PATH`.

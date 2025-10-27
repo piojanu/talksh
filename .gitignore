@@ -18,5 +18,7 @@
 !Dockerfile
 !Makefile
 
+!build.yaml
+
 # ...even if they are in subdirectories
 !*/
