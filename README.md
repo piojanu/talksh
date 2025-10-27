@@ -2,7 +2,14 @@
 
 `talksh` is a minimal, Unix-friendly command-line tool for running LLM prompts on data. It reads from `stdin`, calls an LLM, and prints the result to `stdout`.
 
-It's designed to be a simple, powerful building block in your shell, letting you compose it with other tools like `cat`, `jq`, and `pv`.
+It's designed to be a simple, powerful building block in your shell, letting you compose it with other tools like `cat`, `grep`, `jq`, `pv`, etc.
+
+For example, to count the number of posts about AI in your blog:
+```bash
+cat blog-posts.jsonl | jq '.title' | \
+  talksh map --prompt 'Is this post about AI? Answer with exactly YES or NO, nothing else.\n\n{{}}' | \
+  grep 'YES' | wc -l
+```
 
 -----
 
