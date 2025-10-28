@@ -165,6 +165,15 @@ If your prompt doesn't need any input text, you can use `echo ""` to pipe in a s
 echo "" | talksh map --prompt "How do I use 'xargs' to cat the content of files listed in a text file?"
 ```
 
+Or put this function in your `.bash_aliases`.
+
+```bash
+# Ask talksh anything
+function ata() { echo "" | talksh reduce --prompt "$1" }
+
+$ ata 'How do I kill the whole slurm array?'
+```
+
 ### Example 3: Summarizing Multiple Files (`reduce`)
 
 To summarize *all* your Markdown files into one answer, `cat` them all together and pipe them into `talksh reduce`. `{{}}` will be replaced by the combined text of all files.
